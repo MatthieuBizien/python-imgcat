@@ -26,7 +26,8 @@ def read_version():
 
 
 install_requires = [
-    "Pillow"
+    "Pillow",
+    "smart_open[all]",
 ]
 
 tests_requires = [

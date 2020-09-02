@@ -14,6 +14,7 @@ import io
 import subprocess
 import contextlib
 
+import smart_open
 
 IS_PY_2 = (sys.version_info[0] <= 2)
 IS_PY_3 = (not IS_PY_2)
@@ -253,12 +254,8 @@ def main():
     for fname in args.input:
         # filename: open local file or download from web
         try:
-            if fname.startswith('http://') or fname.startswith('https://'):
-                with contextlib.closing(urlopen(fname)) as fp:
-                    buf = fp.read()  # pylint: disable=no-member
-            else:
-                with io.open(fname, 'rb') as fp:
-                    buf = fp.read()
+            with smart_open.open(fname, 'rb') as fp:
+                buf = fp.read()
         except IOError as e:
             sys.stderr.write(str(e))
             sys.stderr.write('\n')
