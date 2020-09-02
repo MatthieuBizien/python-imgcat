@@ -26,11 +26,12 @@ def read_version():
 
 
 install_requires = [
+    "Pillow"
 ]
 
 tests_requires = [
     'pytest<5.0',
-    'numpy',
+    'numpy<=1.19.0',  # 1.19.1 not supported by Tensorflow 2.3.0
 ]
 if sys.version_info >= (3, 5):
     tests_requires += ['torch', 'torchvision']
