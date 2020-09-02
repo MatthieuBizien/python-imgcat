@@ -14,7 +14,6 @@ import io
 import subprocess
 import contextlib
 
-import smart_open
 
 IS_PY_2 = (sys.version_info[0] <= 2)
 IS_PY_3 = (not IS_PY_2)
@@ -91,6 +90,13 @@ def to_content_buf(data):
 
     if isinstance(data, bytes):
         return data
+
+    elif isinstance(data, str):
+        import smart_open
+
+        # filename: open local file or download from web or other
+        with smart_open.open(data, 'rb') as fp:
+            return fp.read()
 
     elif isinstance(data, io.BufferedReader) or \
             (IS_PY_2 and isinstance(data, file)):  # pylint: disable=undefined-variable
@@ -252,16 +258,14 @@ def main():
 
     # imgcat from arguments
     for fname in args.input:
-        # filename: open local file or download from web
         try:
-            with smart_open.open(fname, 'rb') as fp:
-                buf = fp.read()
+            imgcat(fname, filename=os.path.basename(fname), **kwargs)
         except IOError as e:
+            # TODO catch other smart_open errors (google.api_core.exceptions.Forbidden, etc)
+            # without slow-down of the import
             sys.stderr.write(str(e))
             sys.stderr.write('\n')
             return (e.errno or 1)
-
-        imgcat(buf, filename=os.path.basename(fname), **kwargs)
 
     if not args.input:
         parser.print_help()
