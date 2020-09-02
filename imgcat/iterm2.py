@@ -1,16 +1,45 @@
 """
 iTerm2 backend for imgcat.
 """
-
-import os
 import base64
+import io
+import os
+
+import PIL.Image
 
 TMUX_WRAP_ST = b'\033Ptmux;'
 TMUX_WRAP_ED = b'\033\\'
 
 OSC = b'\033]'
 CSI = b'\033['
-ST  = b'\a'      # \a = ^G (bell)
+ST = b'\a'  # \a = ^G (bell)
+MAX_TMUX_BUF_SIZE = 41_000
+
+
+def _resize_to_len(buf, max_size):
+    # Short path: buffer is small enough
+    if len(buf) < max_size:
+        return buf
+
+    im = PIL.Image.open(io.BytesIO(buf)).convert("RGB")
+
+    # Is compressing to JPEG enough?
+    buf = io.BytesIO()
+    im.save(buf, format='jpeg')
+    buf = buf.getvalue()
+    if len(buf) < max_size:
+        return buf
+
+    # Let's decrease progressively the size of the image
+    size = 512
+    while True:
+        if len(buf) < max_size:
+            return buf
+        im.thumbnail((size, size))
+        buf = io.BytesIO()
+        im.save(buf, format='jpeg')
+        buf = buf.getvalue()
+        size = (size * 3) // 4
 
 
 def _write_image(buf, fp,
@@ -21,10 +50,11 @@ def _write_image(buf, fp,
     # tmux: print some margin and the DCS escape sequence for passthrough
     # In tmux mode, we need to first determine the number of actual lines
     if is_tmux:
+        buf = _resize_to_len(buf, MAX_TMUX_BUF_SIZE)
         fp.write(b'\n' * height)
         # move the cursers back
         fp.write(CSI + b'?25l')
-        fp.write(CSI + str(height).encode() + b"F")     # PEP-461
+        fp.write(CSI + str(height).encode() + b"F")  # PEP-461
         fp.write(TMUX_WRAP_ST + b'\033')
 
     # now starts the iTerm2 file transfer protocol.
