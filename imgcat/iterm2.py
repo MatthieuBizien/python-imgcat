@@ -5,8 +5,6 @@ import base64
 import io
 import os
 
-import PIL.Image
-
 TMUX_WRAP_ST = b'\033Ptmux;'
 TMUX_WRAP_ED = b'\033\\'
 
@@ -17,6 +15,9 @@ MAX_TMUX_BUF_SIZE = 41_000
 
 
 def _resize_to_len(buf, max_size):
+    # Load PIL only if it is mandatory
+    import PIL.Image
+
     # Short path: buffer is small enough
     if len(buf) < max_size:
         return buf
