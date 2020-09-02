@@ -15,8 +15,10 @@ It works with [iTerm2](https://www.iterm2.com/documentation-images.html), and [e
 Installation and Usage
 ----------------------
 
+- (Recommended): install [pipx](https://github.com/pipxproject/pipx)
+- Install from Git
 ```
-pip install imgcat
+pipx install git+https://github.com/MatthieuBizien/python-imgcat.git
 ```
 
 Command-line interface (similar to [iTerm2's imgcat][iTerm2_imgcat]):
